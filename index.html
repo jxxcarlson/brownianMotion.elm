@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+
+  <head>
+    <style>
+      html { background-color: #444}
+      body { margin-top: 2em; margin-left: 2em; font-family: Verdana; }
+      button { width: 55px; height: 35px; font-size: 0.9em;  }
+      #info { font-size: 24pt; color: red; font-style: bold;}
+      #message{ font:size: 10pt; color: black; margin-left: 2em;color: white;}
+      #elm-area {background-color: "gray"}
+
+    </style>
+  </head>
+
+  <body>
+    <div id="elm-area"></div>
+    <script src="elm.js"></script>
+    <script>
+      Elm.Main.embed(document.getElementById("elm-area"));
+    </script>
+  </body>
+
+</html>
