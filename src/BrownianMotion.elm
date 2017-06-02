@@ -14,6 +14,9 @@ import Graph
         ( drawPointList
         , drawIntegerTimeSeries
         , drawLine
+        , Color
+        , Circle
+        , renderHistory
         )
 
 
@@ -32,6 +35,11 @@ type SimulatorState
     | Start
 
 
+rgb : Color -> String
+rgb color =
+    "red"
+
+
 
 -- MODEL
 
@@ -41,10 +49,9 @@ type alias Model =
     , count : Int
     , x_max : Float
     , y_max : Float
-    , x : Float
-    , y : Float
-    , radius : Float
+    , currentCircle : Circle
     , graphData : Graph.GraphData
+    , history : List Circle
     , message : String
     , info : String
     }
@@ -58,10 +65,10 @@ init : ( Model, Cmd Msg )
 init =
     let
         x_max =
-            20.0
+            100.0
 
         y_max =
-            20.0
+            100.0
 
         x =
             x_max / 2
@@ -70,7 +77,13 @@ init =
             y_max / 2
 
         radius =
-            2.0
+            0.6
+
+        color =
+            Color 255 0 0 0.5
+
+        circle =
+            Circle x y radius color
 
         source =
             Graph.Rect 0.0 0.0 x_max y_max
@@ -79,7 +92,10 @@ init =
             Graph.Rect 0.0 0.0 500.0 500.0
 
         graphData =
-            Graph.GraphData source target "#D3E8DD" "white"
+            Graph.GraphData source target "black" "white"
+
+        history =
+            [ circle ]
 
         message =
             "n: 0, x: " ++ (toString x) ++ ", y: " ++ (toString y) ++ ", distance: 0"
@@ -88,14 +104,22 @@ init =
             0
             x_max
             y_max
-            x
-            y
-            radius
+            circle
             graphData
+            []
             message
             ""
         , Cmd.none
         )
+
+
+referenceCircle : Circle
+referenceCircle =
+    let
+        ( m, cmd ) =
+            init
+    in
+        Circle (m.x_max / 2) (m.y_max / 2) (2 * m.currentCircle.r) (Color 0 255 255 0.5)
 
 
 
@@ -130,14 +154,14 @@ update msg model =
 
         MakeMove ( a, b ) ->
             if model.simulatorState == Running then
-                update_position ( a, b ) model
+                update_model ( a, b ) model
             else
                 ( model, Cmd.none )
 
 
 randomMove : Random.Generator ( Int, Int )
 randomMove =
-    Random.pair (Random.int 0 1) (Random.int 0 1)
+    Random.pair (Random.int 0 10) (Random.int 0 10)
 
 
 handlePause : Model -> ( Model, Cmd Msg )
@@ -152,20 +176,29 @@ handlePause model =
         ( { model | simulatorState = newSimulatorState }, Cmd.none )
 
 
-update_position : ( Int, Int ) -> Model -> ( Model, Cmd Msg )
-update_position ( a, b ) model =
+update_model : ( Int, Int ) -> Model -> ( Model, Cmd Msg )
+update_model ( a, b ) model =
     let
         new_count =
             model.count + 1
 
+        currentCircle =
+            model.currentCircle
+
+        k =
+            1.0
+
         x =
-            model.x + 2 * (toFloat a) - 1
+            currentCircle.x + 2 * k * (toFloat a / 10) - 1
 
         y =
-            model.y + 2 * (toFloat b) - 1
+            currentCircle.y + 2 * k * (toFloat b / 10) - 1
 
         r =
-            model.radius
+            currentCircle.r
+
+        color =
+            currentCircle.color
 
         new_info =
             if x < r || x > model.x_max - r || y < r || y > model.y_max - r then
@@ -177,7 +210,7 @@ update_position ( a, b ) model =
             if x < r || x > model.x_max - r || y < r || y > model.y_max - r then
                 "#EEEE22"
             else
-                "#D3E8DD"
+                "black"
 
         oldGraphData =
             model.graphData
@@ -186,29 +219,35 @@ update_position ( a, b ) model =
             { oldGraphData | bgColor = new_bgColor }
 
         rebound_factor =
-            1.1
+            3.0
 
         x_new =
             if x < r then
-                rebound_factor * r
+                k * rebound_factor * r
             else if x > model.x_max - r then
-                model.x_max - rebound_factor * r
+                model.x_max - k * rebound_factor * r
             else
                 x
 
         y_new =
             if y < r then
-                rebound_factor * r
+                k * rebound_factor * r
             else if y > model.y_max - r then
-                model.y_max - rebound_factor * r
+                model.y_max - k * rebound_factor * r
             else
                 y
 
+        newCircle =
+            Circle x_new y_new currentCircle.r color
+
+        new_history =
+            model.history ++ [ newCircle ]
+
         dx =
-            model.x - model.x_max / 2
+            newCircle.x - model.x_max / 2
 
         dy =
-            model.y - model.y_max / 2
+            newCircle.y - model.y_max / 2
 
         d_squared =
             dx * dx + dy * dy
@@ -217,9 +256,9 @@ update_position ( a, b ) model =
             round (sqrt d_squared)
 
         new_message =
-            "n: " ++ (toString model.count) ++ ", x: " ++ (toString (round model.x)) ++ ", y: " ++ (toString (round model.y)) ++ ", distance: " ++ (toString distance)
+            "n: " ++ (toString model.count) ++ ", x: " ++ (toString (round newCircle.x)) ++ ", y: " ++ (toString (round newCircle.y)) ++ ", distance: " ++ (toString distance)
     in
-        ( { model | graphData = newGraphData, count = new_count, x = x_new, y = y_new, message = new_message, info = new_info }, Cmd.none )
+        ( { model | graphData = newGraphData, count = new_count, currentCircle = newCircle, history = new_history, message = new_message, info = new_info }, Cmd.none )
 
 
 
@@ -228,10 +267,24 @@ update_position ( a, b ) model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every (200 * Time.millisecond) Tick
+    Time.every (50 * Time.millisecond) Tick
+
+
+moderate_circle : Float -> Circle -> Circle
+moderate_circle k circle =
+    let
+        cc =
+            circle.color
+
+        newColor =
+            { cc | a = k * cc.a }
+    in
+        { circle | color = newColor }
 
 
 
+-- moderate_history : Float -> List Circle -> List Circle
+-- moderate_history k circle_list =
 -- VIEW
 
 
@@ -240,10 +293,12 @@ view model =
     div [ id "graphics_area" ]
         [ svg
             [ SA.width "500", SA.height "500" ]
-            [ (Graph.boundingRect model.graphData)
-            , (Graph.drawCircle model.graphData "none" "red" 0.6 model.x model.y model.radius)
-            , (Graph.drawCircle model.graphData "none" "blue" 0.25 (model.x_max / 2) (model.y_max / 2) (model.radius * 2))
-            ]
+            ([ (Graph.boundingRect model.graphData)
+             , (Graph.drawCircle model.graphData referenceCircle)
+               --, (Graph.drawCircle model.graphData model.currentCircle
+             ]
+                ++ (renderHistory model.graphData model.history)
+            )
         , br [] []
         , button [ onClick Run, id "run" ] [ text "Run" ]
         , button [ onClick Pause, id "pause" ] [ text "Pause" ]

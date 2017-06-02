@@ -55,6 +55,14 @@ type alias Rect =
     }
 
 
+type alias Color =
+    { r : Int, g : Int, b : Int, a : Float }
+
+
+type alias Circle =
+    { x : Float, y : Float, r : Float, color : Color }
+
+
 {-| GraphData is as in the introduction: two rectangles
   plus some additional data (colors)
 -}
@@ -257,9 +265,59 @@ drawEllipse graphData strokeColor fillColor opacityValue x y rx ry =
             []
 
 
-drawCircle : GraphData -> String -> String -> Float -> Float -> Float -> Float -> S.Svg msg
-drawCircle graphData strokeColor fillColor opacityValue x y r =
-    drawEllipse graphData strokeColor fillColor opacityValue x y r r
+
+-- drawCircle : GraphData -> String -> String -> Float -> Float -> Float -> Float -> S.Svg msg
+-- drawCircle graphData strokeColor fillColor opacityValue x y r =
+--     drawEllipse graphData strokeColor fillColor opacityValue x y r r
+--
+
+
+drawCircle : GraphData -> Circle -> S.Svg msg
+drawCircle graphData circle =
+    let
+        cc =
+            circle.color
+
+        rgba =
+            "rgba(" ++ (toString cc.r) ++ "," ++ (toString cc.b) ++ "," ++ (toString cc.g) ++ "," ++ (toString cc.a) ++ ")"
+
+        x =
+            circle.x
+
+        y =
+            circle.y
+
+        r =
+            circle.r
+
+        center =
+            ( x, y )
+
+        affData =
+            affineTransformData graphData
+
+        aff =
+            affineTransformPoint affData
+
+        ( xx, yy ) =
+            aff center
+
+        rr =
+            abs (affData.a) * r
+    in
+        ellipse
+            [ fill rgba
+            , SA.cx (toString xx)
+            , SA.cy (toString yy)
+            , SA.rx (toString (rr))
+            , SA.ry (toString (rr))
+            ]
+            []
+
+
+renderHistory : GraphData -> List Circle -> List (S.Svg msg)
+renderHistory graphData history =
+    List.map (drawCircle graphData) history
 
 
 drawLine : GraphData -> String -> Float -> Float -> Float -> Float -> S.Svg msg
