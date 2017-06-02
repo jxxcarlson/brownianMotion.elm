@@ -1,0 +1,25 @@
+== BrownianMotion.Elm
+
+This little demo app simulates Brownian motion of a single particle.
+It uses the included `Graph.elm` library to map Cartesian to screen
+coordinates and provide other conveniences.
+
+Some further directions, which I may or may not explore:
+
+- Add fields to control various parameters, e.g.,
+the size of the "playground" within within which the particle moves,
+the radius of particle, the time between updates, etc.
+
+- Simulate the motion of more than one particle.
+
+- Record the history of the particle and display it.  This can give
+ quite beautiful images, especially if one accompanies the random
+walk in the xy-plane with a random walk in RGB color space using a
+well-chosen value of the opacity.
+
+- Display a graph of the distance of the particle from the origin
+as a function of time.
+
+== Installation
+
+Run `make-elm src/BrowniamMotion.elm`, then open the `index.html` file.
