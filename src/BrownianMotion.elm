@@ -4,9 +4,9 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.Attributes exposing (class, id)
+import Html.Attributes exposing (..)
 import Time exposing (Time, second)
-import Svg exposing (svg, circle)
+import Svg as S exposing (svg, circle)
 import Svg.Attributes as SA exposing (cx, cy, fill, width, height, r)
 import Random
 import Graph
@@ -16,7 +16,6 @@ import Graph
         , drawLine
         , Color
         , Circle
-        , renderHistory
         )
 
 
@@ -33,6 +32,11 @@ type SimulatorState
     = Running
     | Paused
     | Start
+
+
+type DisplayMode
+    = HistoryOn
+    | HistoryOff
 
 
 rgb : Color -> String
@@ -52,6 +56,7 @@ type alias Model =
     , currentCircle : Circle
     , graphData : Graph.GraphData
     , history : List Circle
+    , displayMode : DisplayMode
     , message : String
     , info : String
     }
@@ -61,8 +66,8 @@ type alias Model =
 -- start : RunMode -> ( Model, Cmd Msg )
 
 
-init : ( Model, Cmd Msg )
-init =
+start : DisplayMode -> ( Model, Cmd Msg )
+start displayMode =
     let
         x_max =
             100.0
@@ -89,7 +94,7 @@ init =
             Graph.Rect 0.0 0.0 x_max y_max
 
         target =
-            Graph.Rect 0.0 0.0 500.0 500.0
+            Graph.Rect 0.0 0.0 450.0 450.0
 
         graphData =
             Graph.GraphData source target "black" "white"
@@ -107,10 +112,15 @@ init =
             circle
             graphData
             []
+            displayMode
             message
             ""
         , Cmd.none
         )
+
+
+init =
+    start HistoryOff
 
 
 referenceCircle : Circle
@@ -132,13 +142,15 @@ type Msg
     | Pause
     | Run
     | Tick Time
+    | TurnHistoryOn
+    | TurnHistoryOff
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Reset ->
-            init
+            start model.displayMode
 
         Pause ->
             handlePause model
@@ -157,6 +169,12 @@ update msg model =
                 update_model ( a, b ) model
             else
                 ( model, Cmd.none )
+
+        TurnHistoryOn ->
+            ( { model | displayMode = HistoryOn }, Cmd.none )
+
+        TurnHistoryOff ->
+            ( { model | displayMode = HistoryOff }, Cmd.none )
 
 
 randomMove : Random.Generator ( Int, Int )
@@ -270,40 +288,68 @@ subscriptions model =
     Time.every (50 * Time.millisecond) Tick
 
 
-moderate_circle : Float -> Circle -> Circle
-moderate_circle k circle =
-    let
-        cc =
-            circle.color
 
-        newColor =
-            { cc | a = k * cc.a }
-    in
-        { circle | color = newColor }
-
-
-
+-- # This code is not yet used.
+-- moderate_circle : Float -> Circle -> Circle
+-- moderate_circle k circle =
+--     let
+--         cc =
+--             circle.color
+--
+--         newColor =
+--             { cc | a = k * cc.a }
+--     in
+--         { circle | color = newColor }
+--
 -- moderate_history : Float -> List Circle -> List Circle
 -- moderate_history k circle_list =
 -- VIEW
 
 
+renderHistory : DisplayMode -> Model -> List (S.Svg msg)
+renderHistory displayMode model =
+    if displayMode == model.displayMode then
+        Graph.renderHistory model.graphData model.history
+    else
+        []
+
+
+renderParticle : DisplayMode -> Model -> S.Svg msg
+renderParticle displayMode model =
+    if displayMode == model.displayMode then
+        Graph.drawCircle model.graphData model.currentCircle
+    else
+        Graph.drawCircle model.graphData referenceCircle
+
+
 view : Model -> Html Msg
 view model =
     div [ id "graphics_area" ]
-        [ svg
-            [ SA.width "500", SA.height "500" ]
+        [ h1 [] [ text "Brownian motion simulator" ]
+        , svg
+            [ SA.width "450", SA.height "450" ]
             ([ (Graph.boundingRect model.graphData)
              , (Graph.drawCircle model.graphData referenceCircle)
-               --, (Graph.drawCircle model.graphData model.currentCircle
+             , (renderParticle HistoryOff model)
              ]
-                ++ (renderHistory model.graphData model.history)
+                ++ (renderHistory HistoryOn model)
             )
         , br [] []
         , button [ onClick Run, id "run" ] [ text "Run" ]
         , button [ onClick Pause, id "pause" ] [ text "Pause" ]
         , button [ onClick Reset, id "reset" ] [ text "Reset" ]
         , span [ id "message" ] [ text model.message ]
+        , br [] []
+        , fieldset [ id "radioButtons" ]
+            [ label [ id "HistoryOn " ]
+                [ input [ name "history", type_ "radio", onClick TurnHistoryOn ] []
+                , text " History On "
+                ]
+            , label [ id "HistoryOff" ]
+                [ input [ name "history", type_ "radio", onClick TurnHistoryOff, checked True ] []
+                , text " History Off "
+                ]
+            ]
         , br [] []
         , br [] []
         , span [ id "info" ] [ text model.info ]
