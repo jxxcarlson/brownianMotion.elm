@@ -7,8 +7,12 @@ coordinates and provide other conveniences.
 Some further directions, which I may or may not explore:
 
 - Add fields to control various parameters, e.g.,
-the size of the "playground" within within which the particle moves,
-the radius of particle, the time between updates, etc.
+the size of the square within within which the particle moves,
+the radius of particle, the time between updates, etc. Perhaps
+change the field of motion from a square to a circle.
+
+- Experiment with the "rebound" algorithm, which determines what
+happens when the particle collides with a wall.
 
 - Simulate the motion of more than one particle.
 
