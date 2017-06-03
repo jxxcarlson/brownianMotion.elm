@@ -12,14 +12,13 @@ the radius of particle, the time between updates, etc.
 
 - Simulate the motion of more than one particle.
 
-- Record the history of the particle and display it.  This can give
- quite beautiful images, especially if one accompanies the random
-walk in the xy-plane with a random walk in RGB color space using a
-well-chosen value of the opacity.
-
 - Display a graph of the distance of the particle from the origin
 as a function of time.
 
 == Installation
 
 Run `make-elm src/BrowniamMotion.elm`, then open the `index.html` file.
+
+== Image
+
+See `brownian_motion_2.png`
