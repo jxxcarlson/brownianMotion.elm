@@ -41,7 +41,7 @@ type DisplayMode
 
 rgb : Color -> String
 rgb color =
-    "red"
+    "#ff0"
 
 
 
@@ -218,6 +218,21 @@ update_model ( a, b ) model =
         color =
             currentCircle.color
 
+        aa =
+            (a % 3) - 1
+
+        bb =
+            (b % 3) - 1
+
+        red =
+            (color.r + aa) % 256
+
+        blue =
+            (color.b + bb) % 256
+
+        newColor =
+            { color | r = red, b = blue }
+
         new_info =
             if x < r || x > model.x_max - r || y < r || y > model.y_max - r then
                 "COLLISION !"
@@ -256,7 +271,7 @@ update_model ( a, b ) model =
                 y
 
         newCircle =
-            Circle x_new y_new currentCircle.r color
+            Circle x_new y_new currentCircle.r newColor
 
         new_history =
             model.history ++ [ newCircle ]

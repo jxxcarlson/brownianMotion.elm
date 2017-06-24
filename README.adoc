@@ -4,6 +4,12 @@ This little demo app simulates Brownian motion of a single particle.
 It uses the included `Graph.elm` library to map Cartesian to screen
 coordinates and provide other conveniences.
 
+The particle makes random moves in the x and y directions.
+Its color also undergoes Brownian motion: random increments
+are added to the R and B values of the RGBA color value of the
+circle representing the particle.  Thus the full Brownian motion
+explores a 4-dimensional xyRB space.
+
 Some further directions, which I may or may not explore:
 
 - Add fields to control various parameters, e.g.,

@@ -272,14 +272,16 @@ drawEllipse graphData strokeColor fillColor opacityValue x y rx ry =
 --
 
 
+rgbaOf : Color -> String
+rgbaOf color =
+    "rgba(" ++ (toString color.r) ++ "," ++ (toString color.g) ++ "," ++ (toString color.b) ++ "," ++ (toString color.a) ++ ")"
+
+
 drawCircle : GraphData -> Circle -> S.Svg msg
 drawCircle graphData circle =
     let
-        cc =
-            circle.color
-
         rgba =
-            "rgba(" ++ (toString cc.r) ++ "," ++ (toString cc.b) ++ "," ++ (toString cc.g) ++ "," ++ (toString cc.a) ++ ")"
+            rgbaOf circle.color
 
         x =
             circle.x
