@@ -27,7 +27,7 @@ as a function of time.
 
 == Installation
 
-Run `make-elm src/BrowniamMotion.elm`, then open the `index.html` file.
+Run `elm-make src/BrowniamMotion.elm`, then open the `index.html` file.
 
 == Image
 

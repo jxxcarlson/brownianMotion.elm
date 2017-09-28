@@ -120,7 +120,7 @@ start displayMode =
 
 
 init =
-    start HistoryOff
+    start HistoryOn
 
 
 referenceCircle : Circle
@@ -339,7 +339,16 @@ renderParticle displayMode model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "graphics_area" ]
+    div
+        [ id "graphics_area"
+        , style
+            [ ( "margin-left", "35px" )
+            , ( "margin-top", "25px" )
+            , ( "padding", "25px 35px 35px 55px" )
+            , ( "width", "480px" )
+            , ( "background-color", "#eee" )
+            ]
+        ]
         [ h1 [] [ text "Brownian motion simulator" ]
         , svg
             [ SA.width "450", SA.height "450" ]
@@ -350,22 +359,43 @@ view model =
                 ++ (renderHistory HistoryOn model)
             )
         , br [] []
-        , button [ onClick Run, id "run" ] [ text "Run" ]
-        , button [ onClick Pause, id "pause" ] [ text "Pause" ]
-        , button [ onClick Reset, id "reset" ] [ text "Reset" ]
-        , span [ id "message" ] [ text model.message ]
+        , button [ buttonStyle, onClick Run, id "run" ] [ text "Run" ]
+        , button [ buttonStyle, onClick Pause, id "pause" ] [ text "Pause" ]
+        , button [ buttonStyle, onClick Reset, id "reset" ] [ text "Reset" ]
+        , span [ id "message", labelStyle ] [ text model.message ]
         , br [] []
-        , fieldset [ id "radioButtons" ]
+        , br [] []
+        , fieldset [ id "radioButtons", style [ ( "border", "none" ), ( "margin-left", "100px" ) ] ]
             [ label [ id "HistoryOn " ]
-                [ input [ name "history", type_ "radio", onClick TurnHistoryOn ] []
+                [ input [ name "history", type_ "radio", onClick TurnHistoryOn, checked True ] []
                 , text " History On "
                 ]
             , label [ id "HistoryOff" ]
-                [ input [ name "history", type_ "radio", onClick TurnHistoryOff, checked True ] []
+                [ input [ name "history", type_ "radio", onClick TurnHistoryOff ] []
                 , text " History Off "
                 ]
             ]
         , br [] []
         , br [] []
         , span [ id "info" ] [ text model.info ]
+        ]
+
+
+buttonStyle =
+    style
+        [ ( "height", "25px" )
+        , ( "background-color", "black" )
+        , ( "color", "white" )
+        , ( "margin-right", "10px" )
+        , ( "font-size", "12pt" )
+        ]
+
+
+labelStyle =
+    style
+        [ ( "height", "35px" )
+        , ( "background-color", "black" )
+        , ( "color", "white" )
+        , ( "margin-right", "15px" )
+        , ( "padding", "3px 8px 3px 8px" )
         ]
